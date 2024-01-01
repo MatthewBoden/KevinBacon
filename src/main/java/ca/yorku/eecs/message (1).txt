@@ -1,0 +1,169 @@
+*** Settings ***
+Library           Collections
+Library           RequestsLibrary
+Test Timeout      30 seconds
+
+Suite Setup    Create Session    localhost    http://localhost:8080
+
+*** Test Cases ***
+AddActorPass1
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=Kevin Bacon   actorId=nm0000102
+    ${resp}=    PUT On Session    localhost    /api/v1/addActor    json=${params}    headers=${headers}    expected_status=200
+AddActorPass2
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=Charlie Day  actorId=nm0000001
+    ${resp}=    PUT On Session    localhost    /api/v1/addActor    json=${params}    headers=${headers}    expected_status=200
+AddActorPass3
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=Chris Pratt    actorId=nm1234567
+    ${resp}=    PUT On Session    localhost    /api/v1/addActor    json=${params}    headers=${headers}    expected_status=200
+AddActorFail
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=Jack Black    
+    ${resp}=    PUT On Session    localhost    /api/v1/addActor    json=${params}    headers=${headers}    expected_status=400
+	List Should Contain Value		${resp.json()}	BAD REQUEST
+AddMoviePass1
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=Super Mario movie    movieId=nm1234589   
+    ${resp}=    PUT On Session    localhost    /api/v1/addMovie    json=${params}    headers=${headers}    expected_status=200
+AddMoviePass2
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=Guardians of the Galaxy Holiday Special    movieId=nm0000010   
+    ${resp}=    PUT On Session    localhost    /api/v1/addMovie    json=${params}    headers=${headers}    expected_status=200
+AddMovieFail
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    name=Super Mario movie       
+    ${resp}=    PUT On Session    localhost    /api/v1/addMovie    json=${params}    headers=${headers}    expected_status=400
+	List Should Contain Value		${resp.json()}	BAD REQUEST
+AddRelationshipPass1
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm0000010    actorId=0000102   
+    ${resp}=    PUT On Session    localhost    /api/v1/addRelationship    json=${params}    headers=${headers}    expected_status=200
+AddRelationshipPass2
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm0000010    actorId=1234567   
+    ${resp}=    PUT On Session    localhost    /api/v1/addRelationship    json=${params}    headers=${headers}    expected_status=200
+AddRelationshipPass3
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm1234589    actorId=1234567   
+    ${resp}=    PUT On Session    localhost    /api/v1/addRelationship    json=${params}    headers=${headers}    expected_status=200
+AddRelationshipPass4
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm1234589    actorId=0000001   
+    ${resp}=    PUT On Session    localhost    /api/v1/addRelationship    json=${params}    headers=${headers}    expected_status=200
+AddRelationshipFail
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm9876322    actorId=nm1234567      
+    ${resp}=    PUT On Session    localhost    /api/v1/addRelationship    json=${params}    headers=${headers}    expected_status=400  
+	List Should Contain Value		${resp.json()}	BAD REQUEST
+GetActorPass1
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    actorId=nm1234567
+    ${resp}=    GET On Session    localhost    /api/v1/getActor    params=${params}     headers=${headers}    expected_status=200
+    Dictionary Should Contain Value    ${resp.json()}    Chris Pratt
+GetActorPass2
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    actorId=nm0000102
+    ${resp}=    GET On Session    localhost    /api/v1/getActor    params=${params}     headers=${headers}    expected_status=200
+    Dictionary Should Contain Value    ${resp.json()}    Kevin Bacon
+GetActorPass3
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    actorId=nm0000001
+    ${resp}=    GET On Session    localhost    /api/v1/getActor    params=${params}     headers=${headers}    expected_status=200
+    Dictionary Should Contain Value    ${resp.json()}    Charlie Day
+GetActorFail
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    actorId=nm123456
+    ${resp}=    GET On Session    localhost    /api/v1/getActor    params=${params}     headers=${headers}    expected_status=400
+	List Should Contain Value		${resp.json()}	BAD REQUEST
+GetMoviePass1
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm1234589
+    ${resp}=    GET On Session    localhost    /api/v1/getMovie    params=${params}     headers=${headers}    expected_status=200
+    Dictionary Should Contain Value    ${resp.json()}    Super Mario movie
+GetMoviePass2
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm0000010
+    ${resp}=    GET On Session    localhost    /api/v1/getMovie    params=${params}     headers=${headers}    expected_status=200
+    Dictionary Should Contain Value    ${resp.json()}    Guardians of the Galaxy Holiday Special
+GetMovieFail
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm1234590
+    ${resp}=    GET On Session    localhost    /api/v1/getMovie    params=${params}     headers=${headers}    expected_status=404
+	List Should Contain Value		${resp.json()}	NOT FOUND
+hasRelationshipPass1
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm1234589    actorId=nm1234567
+    ${resp}=    GET On Session    localhost    /api/v1/hasRelationship    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain Key    ${resp.json()}    ${True}
+hasRelationshipPass2
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm0000010    actorId=nm1234567
+    ${resp}=    GET On Session    localhost    /api/v1/hasRelationship    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain Key    ${resp.json()}    ${True}
+hasRelationshipPass3
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm1234589    actorId=nm0000001
+    ${resp}=    GET On Session    localhost    /api/v1/hasRelationship    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain Key    ${resp.json()}    ${True}
+hasRelationshipPass4
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm0000010    actorId=nm0000102
+    ${resp}=    GET On Session    localhost    /api/v1/hasRelationship    params=${params}     headers=${headers}    expected_status=200
+    Dictionary Should Contain Key    ${resp.json()}    ${True}
+hasRelationshipFail
+    ${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary    movieId=nm1234589    actorId=nm1234576
+    ${resp}=    GET On Session    localhost    /api/v1/hasRelationship    params=${params}     headers=${headers}    expected_status=404    
+    List Should Contain Value		${resp.json()}	NOT FOUND	
+computeBaconNumberPass1	
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   actorId=nm0000102
+    ${resp}=    GET On Session    localhost    /api/v1/computeBaconNumber    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain Key    ${resp.json()}    baconNumber
+computeBaconNumberPass2	
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   actorId=nm1234567
+    ${resp}=    GET On Session    localhost    /api/v1/computeBaconNumber    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain Key    ${resp.json()}    baconNumber
+computeBaconNumberPass3	
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   actorId=nm0000001
+    ${resp}=    GET On Session    localhost    /api/v1/computeBaconNumber    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain Key    ${resp.json()}    baconNumber
+computeBaconNumberFail	
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   actorId=nm0000003
+    ${resp}=    GET On Session    localhost    /api/v1/computeBaconNumber    params=${params}     headers=${headers}    expected_status=404
+	List Should Contain Value		${resp.json()}	NOT FOUND	
+computeBaconPathPass1	
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   actorId=nm0000102
+    ${resp}=    GET On Session    localhost    /api/v1/computeBaconPath    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain key    ${resp.json()}    baconPath
+computeBaconPathPass2	
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   actorId=nm1234567
+    ${resp}=    GET On Session    localhost    /api/v1/computeBaconPath    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain key    ${resp.json()}    baconPath
+computeBaconPathPass3	
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   actorId=nm0000001
+    ${resp}=    GET On Session    localhost    /api/v1/computeBaconPath    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain key    ${resp.json()}    baconPath
+computeBaconPathFail	
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   actorId=nm0000003
+    ${resp}=    GET On Session    localhost    /api/v1/computeBaconPath    params=${params}     headers=${headers}    expected_status=404
+	List Should Contain Value		${resp.json()}	NOT FOUND	
+movieRecommendationsPass1
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   movieId=nm1234589
+    ${resp}=    GET On Session    localhost    /api/v1/movieRecommendations    params=${params}     headers=${headers}    expected_status=200
+	Dictionary Should Contain Key    ${resp.json()}    Recommendation
+movieRecommendationsFail2
+	${headers}=    Create Dictionary    Content-Type=application/json
+    ${params}=    Create Dictionary   movieId=nm0000030
+    ${resp}=    GET On Session    localhost    /api/v1/movieRecommendations    params=${params}     headers=${headers}    expected_status=404
+	List Should Contain Value		${resp.json()}	NOT FOUND	

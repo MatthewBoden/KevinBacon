@@ -1,0 +1,74 @@
+public void addActor(HttpExchange request) throws IOException
+	{
+		String query = convert(request.getRequestBody());
+		
+		Map<String, String> queryParam = splitQuery(query);
+		
+		System.out.println(queryParam.keySet());
+		System.out.println(queryParam.values());
+		
+    	String name = queryParam.get("\"name\"");
+        String id = queryParam.get("\"actorId\"");
+                
+        System.out.println(queryParam.isEmpty());
+        System.out.println(name + " " + id);
+        /*
+		try (Session session = driver.session()) {            
+			session.writeTransaction(tx -> tx.run("MERGE (a: actor{name:$x, actorId:$y})",	
+					parameters("x", name, "y", id)));
+			session.close();
+		}
+		*/
+		
+	}
+	
+	public void addMovie(HttpExchange request) throws IOException
+	{
+		String query = convert(request.getRequestBody());
+		Map<String, String> queryParam = splitQuery(query);
+		
+		System.out.println(queryParam.keySet());
+		System.out.println(queryParam.values());
+		
+    	String movieName = queryParam.get("\"name\"");
+        String movieId = queryParam.get("\"movieId\"");
+        
+        System.out.println(movieName + " " + movieId);
+        
+		try (Session session = driver.session()) {            
+			session.writeTransaction(tx -> tx.run("MERGE (a: movie{name:$x, movieId:$y})",	
+					parameters("x", movieName, "y", movieId)));
+			session.close();
+		}
+		
+	}
+	
+	public void addRelationship(HttpExchange request) throws IOException
+	{
+		String query = convert(request.getRequestBody());
+		Map<String, String> queryParam = splitQuery(query);
+    	String actorName = queryParam.get("\"actorId\"");
+        String movieName = queryParam.get("\"movieId\"");
+        
+		try (Session session = driver.session()) {            
+			session.writeTransaction(tx -> tx.run("MATCH (a:actor {id:$x}),"
+					+ "(m:movie {id:$y})\n" +
+					  "MERGE (a)-[r:ACTED_IN]->(m)\n" +
+					  "RETURN r",					
+					parameters("x", actorName, "y", movieName)));
+			session.close();
+		}
+		
+	}
+
+public static Map<String, String> splitQuery(String query) throws UnsupportedEncodingException {
+    	String string = query.replaceAll("\\s", "");
+    	Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+        String[] pairs = string.split(",");
+        
+        for (String pair : pairs) {
+            int idx = pair.indexOf(":");
+            query_pairs.put(pair.substring(0, idx), pair.substring(idx + 1));
+        }
+        return query_pairs;
+    }
